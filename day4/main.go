@@ -235,7 +235,7 @@ func main(){
 	}
 
 	best := &Bingo{
-		Turns: len(numbers) + 1,
+		Turns: 0,
 	}
 
 	for _, board := range boards {
@@ -244,7 +244,7 @@ func main(){
 			continue
 		}
 
-		if bingo.Turns < best.Turns {
+		if bingo.Turns > best.Turns {
 			best = bingo
 		}
 	}

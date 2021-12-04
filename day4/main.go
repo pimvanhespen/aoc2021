@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -104,6 +105,17 @@ func (b *Bingo) CheckNumber(num int) bool {
 		}
 	}
 	return false
+}
+
+func (b *Bingo) Score() int {
+	sum := 0
+	for _, n := range b.Miss {
+		sum += n
+	}
+
+	lastHit := b.Hits[len(b.Hits) - 1]
+	score := sum * lastHit
+	return score
 }
 
 // Solve1 solves this bingo Board in the least turns possible
@@ -234,29 +246,25 @@ func main(){
 		panic(err.Error())
 	}
 
-	best := &Bingo{
-		Turns: 0,
-	}
+
+	bingos := make([]*Bingo, 0, len(boards))
 
 	for _, board := range boards {
 		bingo := NewBingo(board)
 		if err := bingo.Solve1(numbers); err != nil {
 			continue
 		}
-
-		if bingo.Turns > best.Turns {
-			best = bingo
-		}
+		bingos = append(bingos, bingo)
 	}
 
-	sum := 0
-	for _, n := range best.Miss {
-		sum += n
-	}
+	sort.Slice(bingos, func(i, j int) bool {
+		return bingos[i].Turns < bingos[j].Turns
+	})
 
-	lastHit := best.Hits[len(best.Hits) - 1]
+	best := bingos[0]
+	worst := bingos[len(bingos) - 1]
 
-	result := sum * lastHit
 
-	fmt.Println(result)
+	fmt.Printf("Best: %d\n", best.Score())
+	fmt.Printf("Worst: %d\n", worst.Score())
 }

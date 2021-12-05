@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
-func main() {
-	if err := exec("input.txt"); err != nil {
-		panic(err)
-	}
+type Line struct {
+	A Point
+	B Point
 }
 
+type Point struct {
+	X, Y int
+}
 
 type Field [][]int
 
@@ -57,14 +59,6 @@ func (f Field) Copy() Field {
 	return field
 }
 
-func Max( a,b int) int {
-	a, b = abs(a), abs(b)
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func (f Field) Plot(l Line, allowDiagonals bool){
 	dx := l.B.X - l.A.X
 	dy := l.B.Y - l.A.Y
@@ -78,7 +72,6 @@ func (f Field) Plot(l Line, allowDiagonals bool){
 	} else if dx != 0 && dy == 0 {
 
 	} else {
-		fmt.Printf("A: %+v; B: %+v; dx=%d, dy=%d", l.A, l.B, dx, dy)
 		panic("wtf.exe")
 	}
 
@@ -96,27 +89,33 @@ func (f Field) Plot(l Line, allowDiagonals bool){
 		stepY = 1
 	}
 
-	//fmt.Printf("A: %+v; B: %+v; dx=%d, sx=%d; dy=%d, sy=%d\n", l.A, l.B, dx, stepX, dy, stepY)
-
 	max := Max(dx, dy)
-
 	for i := 0; i <= max; i++ {
 		x := l.A.X + i * stepX
 		y := l.A.Y + i * stepY
-
-		//fmt.Sprintf("X,Y = %d,%d", x, y)
 
 		f[x][y]++
 	}
 }
 
-type Line struct {
-	A Point
-	B Point
+func (f Field) CountMinHits(min int) int {
+	hits := 0
+	for _, row := range f {
+		for _, col := range row {
+			if col >= min {
+				hits++
+			}
+		}
+	}
+	return hits
 }
 
-type Point struct {
-	X, Y int
+func Max( a,b int) int {
+	a, b = abs(a), abs(b)
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func TextToPoint(text string) Point {
@@ -138,8 +137,6 @@ func readInput(reader io.Reader) (Field, []Line){
 	for scanner.Scan() {
 		text := scanner.Text()
 		coords := strings.Split(text, " -> ")
-
-		//fmt.Printf("%+v\n", coords)
 
 		a := TextToPoint(coords[0])
 		b := TextToPoint(coords[1])
@@ -173,18 +170,6 @@ func abs(n int) int {
 	return n
 }
 
-func (f Field) CountMinHits(min int) int {
-	hits := 0
-	for _, row := range f {
-		for _, col := range row {
-			if col >= min {
-				hits++
-			}
-		}
-	}
-	return hits
-}
-
 func exec(inpath string) error {
 	f, err := os.Open(inpath)
 	if err != nil {
@@ -199,17 +184,19 @@ func exec(inpath string) error {
 	for _, line := range lines {
 		field.Plot(line, false)
 		field2.Plot(line, true)
-		//fmt.Println(field)
 	}
 
 	solve1 := field.CountMinHits(2)
+	fmt.Printf("Solve1: %d\n", solve1)
 
 	solve2 := field2.CountMinHits(2)
-
-	fmt.Printf("Solve1: %d\n", solve1)
 	fmt.Printf("Solve2: %d\n", solve2)
 
-	// do stuff
-
 	return nil
+}
+
+func main() {
+	if err := exec("input.txt"); err != nil {
+		panic(err)
+	}
 }

@@ -26,6 +26,10 @@ func NewFish(start int) Fish {
 	}
 }
 
+func (f *Fish) SetStart(start int){
+	f.Start = start
+}
+
 func (f Fish) GetBirths(limit int) []int {
 	births := make([]int, 0)
 	next := f.Start + 9
@@ -57,6 +61,51 @@ func AddBirths(births []int, m map[int]int){
 	}
 }
 
+func Solve2(input []int, limit int) int {
+	stack := make(map[int]int)
+
+	total := 0
+
+	for _, num := range input {
+		start := num - 8
+		f := NewFish(start)
+		total++
+
+		births := f.GetBirths(limit)
+		AddBirths(births, stack)
+	}
+
+	// exec each day, add fish birth
+	for days := 0; days <= limit; days++ {
+		births, ok := stack[days]
+		if ! ok {
+			//fmt.Printf("Day %3d; total: %10d\n", days, total)
+			continue
+		}
+
+		total += births
+		f := NewFish(days)
+
+		dates := f.GetBirths(limit)
+		for _, date := range dates {
+			if _, exists := stack[date]; ! exists {
+				stack[date] = 0
+			}
+			stack[date] += births
+		}
+		//
+		//for birth := 0; birth < births; birth++ {
+		//	total++
+		//	f := NewFish(days)
+		//
+		//	bts := f.GetBirths(limit)
+		//	AddBirths(bts, stack)
+		//}
+		//fmt.Printf("Day %3d; total: %10d\n", days, total)
+	}
+
+	return total
+}
 
 func Solve1(input []int, limit int) int {
 	stack := make(map[int]int)
@@ -74,7 +123,7 @@ func Solve1(input []int, limit int) int {
 
 	// exec each day, add fish birth
 	for i := 0; i <= limit; i++ {
-		fmt.Printf("Day %3d; total: %10d\n", i, total)
+		//fmt.Printf("Day %3d; total: %10d\n", i, total)
 		births, ok := stack[i]
 		if ! ok {
 			continue
@@ -100,10 +149,13 @@ func exec(path string) error {
 
 	const limit = 80
 
-	solution1 := Solve1(numbers, limit)
-	fmt.Println(solution1)
+	solution1a := Solve1(numbers, limit)
+	fmt.Println(solution1a)
+	solution1b := Solve2(numbers, limit)
+	fmt.Println(solution1b)
 
-	solution2 := Solve1(numbers, 256)
+
+	solution2 := Solve2(numbers, 256)
 	fmt.Println(solution2)
 
 	return nil

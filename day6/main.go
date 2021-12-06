@@ -16,23 +16,15 @@ func main(){
 
 
 // Fish is useful for debugging
-type Fish struct {
-	Start int
-}
+type Fish int
 
 func NewFish(start int) Fish {
-	return Fish{
-		Start: start,
-	}
-}
-
-func (f *Fish) SetStart(start int){
-	f.Start = start
+	return Fish(start)
 }
 
 func (f Fish) GetBirths(limit int) []int {
 	births := make([]int, 0)
-	next := f.Start + 9
+	next := int(f) + 9
 	for i := next; i <= limit; i += 7 {
 		births = append(births, i)
 	}
@@ -41,7 +33,7 @@ func (f Fish) GetBirths(limit int) []int {
 
 func (f Fish) GetValue(day int) int {
 	// first day
-	days := day - f.Start
+	days := day - int(f)
 
 	if days < 9 {
 		return 8 - days
@@ -54,15 +46,66 @@ func (f Fish) GetValue(day int) int {
 
 func AddBirths(births []int, m map[int]int){
 	for _, birth := range births {
-		if _, exists := m[birth]; ! exists {
+		if _, ok := m[birth]; ! ok {
 			m[birth] = 0
 		}
 		m[birth]++
 	}
 }
 
+type Stack map[int]int
+
+func (m Stack) Add(addition, index int) {
+	if _, ok := m[index]; ! ok {
+		m[index] = 0
+	}
+	m[index] += addition
+}
+
+func printFish(day int, fishes []Fish){
+	s := fmt.Sprintf("%2d (%d): ", day, len(fishes))
+	for _, fish := range fishes {
+		s += strconv.Itoa(fish.GetValue(day)) + " "
+	}
+	fmt.Println(s)
+}
+
+func SolveVerbose(input []int, limit int) int {
+	stack := make(Stack)
+	fishes := make([]Fish, 0, len(input))
+
+	for _, num := range input {
+		start := num - 8
+		f := NewFish(start)
+		fishes = append(fishes, f)
+
+		for _, date := range f.GetBirths(limit) {
+			stack.Add(1, date)
+		}
+	}
+
+	for day := 0; day <= limit; day++ {
+		births, ok := stack[day]
+		if ! ok {
+			printFish(day, fishes)
+			continue
+		}
+
+		for birth := 0; birth < births; birth++ {
+			f := NewFish(day)
+			fishes = append(fishes, f)
+
+			bts := f.GetBirths(limit)
+			AddBirths(bts, stack)
+		}
+		printFish(day, fishes)
+	}
+
+	return len(fishes)
+}
+
 func Solve2(input []int, limit int) int {
-	stack := make(map[int]int)
+	stack := make(Stack)
 
 	total := 0
 
@@ -71,37 +114,23 @@ func Solve2(input []int, limit int) int {
 		f := NewFish(start)
 		total++
 
-		births := f.GetBirths(limit)
-		AddBirths(births, stack)
+		for _, date := range f.GetBirths(limit) {
+			stack.Add(1, date)
+		}
 	}
 
-	// exec each day, add fish birth
 	for days := 0; days <= limit; days++ {
 		births, ok := stack[days]
 		if ! ok {
-			//fmt.Printf("Day %3d; total: %10d\n", days, total)
 			continue
 		}
 
 		total += births
 		f := NewFish(days)
 
-		dates := f.GetBirths(limit)
-		for _, date := range dates {
-			if _, exists := stack[date]; ! exists {
-				stack[date] = 0
-			}
-			stack[date] += births
+		for _, date := range f.GetBirths(limit) {
+			stack.Add(births, date)
 		}
-		//
-		//for birth := 0; birth < births; birth++ {
-		//	total++
-		//	f := NewFish(days)
-		//
-		//	bts := f.GetBirths(limit)
-		//	AddBirths(bts, stack)
-		//}
-		//fmt.Printf("Day %3d; total: %10d\n", days, total)
 	}
 
 	return total
@@ -147,11 +176,11 @@ func exec(path string) error {
 		return err
 	}
 
-	const limit = 80
+	SolveVerbose(numbers, 18)
 
-	solution1a := Solve1(numbers, limit)
+	solution1a := Solve1(numbers, 80)
 	fmt.Println(solution1a)
-	solution1b := Solve2(numbers, limit)
+	solution1b := Solve2(numbers, 80)
 	fmt.Println(solution1b)
 
 

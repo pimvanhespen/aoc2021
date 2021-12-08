@@ -6,17 +6,17 @@ import (
 )
 
 func TestLetters_Difference(t *testing.T) {
-	testcases := []struct{
+	testcases := []struct {
 		A, B, Expect Letters
 	}{
 		{[]rune("abc"), []rune("ab"), []rune("c")},
 		{[]rune("sadf"), []rune("fds"), []rune("a")},
 	}
 
-	for _, tc := range testcases{
+	for _, tc := range testcases {
 		got := tc.A.Difference(tc.B)
 
-		if !got.ContainsAll(tc.Expect){
+		if !got.ContainsAll(tc.Expect) {
 			t.Errorf("gpt: %+v; expect %+v", got, tc.Expect)
 		}
 	}
@@ -47,8 +47,8 @@ func TestDigit_GetNum(t *testing.T) {
 		Bottom:      'g',
 	}
 
-	testcases := []struct{
-		Input Letters
+	testcases := []struct {
+		Input  Letters
 		Expect int
 	}{
 		{
@@ -94,10 +94,9 @@ func TestDigit_GetNum(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		got := digit.GetNum(tc.Input)
+		got := digit.ParseNumber(tc.Input)
 		if got != tc.Expect {
 			t.Errorf("got: %d, expect: %d", got, tc.Expect)
 		}
 	}
 }
-

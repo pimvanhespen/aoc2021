@@ -20,17 +20,17 @@ func (l Letters) Contains(r rune) bool {
 	return false
 }
 
-func (l Letters) String() string  {
-	return string(l)
-}
-
 func (l Letters) ContainsAll(other Letters) bool {
 	for _, letter := range other {
-		if ! l.Contains(letter){
+		if !l.Contains(letter) {
 			return false
 		}
 	}
 	return true
+}
+
+func (l Letters) String() string {
+	return string(l)
 }
 
 // Difference returns the unique letters contained in l that are not in other
@@ -38,12 +38,11 @@ func (l Letters) ContainsAll(other Letters) bool {
 func (l Letters) Difference(other Letters) Letters {
 	result := make([]rune, 0)
 	for _, c := range l {
-		if other.Contains(c){
+		if other.Contains(c) {
 			continue
 		}
 		result = append(result, c)
 	}
-	//fmt.Printf("%s - %s = %s\n", string(l), string(other), string(result))
 	return result
 }
 
@@ -51,7 +50,7 @@ type Digit struct {
 	Top, TopLeft, TopRight, Center, BottomLeft, BottomRight, Bottom rune
 }
 
-func (d Digit) GetKnownLetters() Letters {
+func (d Digit) GetLetters() Letters {
 	all := []rune{d.TopLeft, d.Top, d.TopRight, d.Center, d.BottomLeft, d.Bottom, d.BottomRight}
 	for i := len(all) - 1; i >= 0; i-- {
 		if all[i] != 0 {
@@ -62,7 +61,7 @@ func (d Digit) GetKnownLetters() Letters {
 	return all
 }
 
-func (d Digit) GetNum(l Letters) int {
+func (d Digit) ParseNumber(l Letters) int {
 	length := len(l)
 
 	if length == 2 {
@@ -79,16 +78,16 @@ func (d Digit) GetNum(l Letters) int {
 	}
 
 	if length == 5 {
-		if l.Contains(d.TopRight) && l.Contains(d.BottomRight){
+		if l.Contains(d.TopRight) && l.Contains(d.BottomRight) {
 			return 3
-		} else if l.Contains(d.TopRight){
+		} else if l.Contains(d.TopRight) {
 			return 2
 		} else {
 			return 5
 		}
 	}
 
-	if ! l.Contains(d.Center) {
+	if !l.Contains(d.Center) {
 		return 0
 	}
 
@@ -115,19 +114,14 @@ func (d Digit) String() string {
 	return s
 }
 
-type Solution struct {
-	Puzzle Puzzle
-	Digit Digit
-}
-
 type Puzzle struct {
-	Input []Letters
-	Payload []Letters
+	Reference []Letters
+	Payload   []Letters
 }
 
-func (p Puzzle) GetOneFourSevenEight() (Letters, Letters, Letters, Letters){
+func (p Puzzle) GetOneFourSevenEight() (Letters, Letters, Letters, Letters) {
 	var one, four, seven, eight Letters
-	for _, l := range p.Input {
+	for _, l := range p.Reference {
 		if len(l) == 2 {
 			one = l
 		}
@@ -145,7 +139,7 @@ func (p Puzzle) GetOneFourSevenEight() (Letters, Letters, Letters, Letters){
 }
 
 func (p Puzzle) GetInput(size int, mustContain Letters) (Letters, bool) {
-	for _, letters := range p.Input {
+	for _, letters := range p.Reference {
 		if len(letters) != size {
 			continue
 		}
@@ -170,12 +164,12 @@ func (p Puzzle) Solve() (Solution, error) {
 	solution.Top = topCandidate[0]
 
 	three, ok := p.GetInput(5, seven)
-	if ! ok {
+	if !ok {
 		return Solution{}, errors.New("missing three")
 	}
 
 	nine, ok := p.GetInput(6, three)
-	if ! ok {
+	if !ok {
 		return Solution{}, errors.New("missing nine")
 	}
 
@@ -202,26 +196,26 @@ func (p Puzzle) Solve() (Solution, error) {
 	solution.Bottom = bottomCandidate[0]
 
 	// BOTTOM RIGHT
-	five, ok := p.GetInput(5, solution.GetKnownLetters())
-	if ! ok {
+	five, ok := p.GetInput(5, solution.GetLetters())
+	if !ok {
 		return Solution{}, errors.New("missing five")
 	}
 
-	bottomRightCandidate := five.Difference(solution.GetKnownLetters())
+	bottomRightCandidate := five.Difference(solution.GetLetters())
 	if len(bottomRightCandidate) != 1 {
-		return Solution{}, fmt.Errorf("bottomRightCandidate must have only one candidate\ngot: %+v\nfrom: [%+v] DIFF [%+v]\n%s\n",bottomRightCandidate, five, solution.GetKnownLetters(), solution)
+		return Solution{}, fmt.Errorf("bottomRightCandidate must have only one candidate\ngot: %+v\nfrom: [%+v] DIFF [%+v]\n%s\n", bottomRightCandidate, five, solution.GetLetters(), solution)
 	}
 	solution.BottomRight = bottomRightCandidate[0]
 
 	// TOP RIGHT
-	topRightCandidate := one.Difference(solution.GetKnownLetters())
+	topRightCandidate := one.Difference(solution.GetLetters())
 	if len(topRightCandidate) != 1 {
 		return Solution{}, errors.New("topRightCandidate must have only one candidate")
 	}
 	solution.TopRight = topRightCandidate[0]
 
 	// BOTTOM LEFT
-	bottomLeftCandidate := eight.Difference(solution.GetKnownLetters())
+	bottomLeftCandidate := eight.Difference(solution.GetLetters())
 	if len(bottomLeftCandidate) != 1 {
 		return Solution{}, errors.New("bottomLeftCandidate must have only one candidate")
 	}
@@ -233,10 +227,15 @@ func (p Puzzle) Solve() (Solution, error) {
 	}, nil
 }
 
+type Solution struct {
+	Puzzle Puzzle
+	Digit  Digit
+}
+
 func (s Solution) GetDigits() []int {
 	var result []int
 	for _, payload := range s.Puzzle.Payload {
-		result = append(result, s.Digit.GetNum(payload))
+		result = append(result, s.Digit.ParseNumber(payload))
 	}
 	return result
 }
@@ -245,8 +244,8 @@ func (s Solution) GetNumber() int {
 	length := len(s.Puzzle.Payload)
 	sum := 0
 	for n, digit := range s.Puzzle.Payload {
-		multiplier := int(math.Pow10(length -n -1))
-		sum += multiplier * s.Digit.GetNum(digit)
+		multiplier := int(math.Pow10(length - n - 1))
+		sum += multiplier * s.Digit.ParseNumber(digit)
 	}
 	return sum
 }
@@ -254,7 +253,7 @@ func (s Solution) GetNumber() int {
 func solve1(s []Solution) int {
 	count := 0
 	for _, solution := range s {
-		for _, digit := range solution.GetDigits(){
+		for _, digit := range solution.GetDigits() {
 			if digit == 1 || digit == 4 || digit == 7 || digit == 8 {
 				count++
 			}
@@ -303,7 +302,7 @@ func stringToDigits(input string) []Letters {
 	return all
 }
 
-func readInput(path string) ([]Puzzle, error){
+func readInput(path string) ([]Puzzle, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -317,8 +316,8 @@ func readInput(path string) ([]Puzzle, error){
 		BeforeAfter := strings.Split(line, " | ")
 		before, after := BeforeAfter[0], BeforeAfter[1]
 		p := Puzzle{
-			Input:  stringToDigits(before),
-			Payload: stringToDigits(after),
+			Reference: stringToDigits(before),
+			Payload:   stringToDigits(after),
 		}
 		puzzles = append(puzzles, p)
 	}

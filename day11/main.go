@@ -84,10 +84,41 @@ func(o Octopuses) NextGen() int {
 	return flashes
 }
 
+func (o Octopuses) DeepCopy() Octopuses {
+	rows := make([][]*Octopus, len(o))
+	for y, row := range o {
+		rowCopy := make([]*Octopus, len(row))
+		for x, octo := range row {
+			rowCopy[x] = NewOctopus(octo.Value)
+		}
+		rows[y] = rowCopy
+	}
+	return rows
+}
+
+func (o Octopuses) Count() int {
+	count := 0
+	for _, row := range o {
+		count += len(row)
+	}
+	return count
+}
+
 func main(){
 	if err := exec("input.txt"); err != nil {
 		panic(err)
 	}
+}
+
+func solve2(o Octopuses) int {
+	flashes := 0
+	target := o.Count()
+	generations := 0
+	for target != flashes {
+		generations++
+		flashes = o.NextGen()
+	}
+	return generations
 }
 
 func exec(path string) error {
@@ -96,12 +127,15 @@ func exec(path string) error {
 		return err
 	}
 
-	flashes := 0
-	for i := 0; i < 100; i++ {
-		flashes += octo.NextGen()
-	}
+	octo2 := octo.DeepCopy()
 
-	fmt.Println("Solve1: ", flashes)
+	totalFlashes := 0
+	for i := 0; i < 100; i++ {
+		totalFlashes += octo.NextGen()
+	}
+	fmt.Println("Solve1: ", totalFlashes)
+
+	fmt.Println("Solve2: ", solve2(octo2))
 
 	return nil
 }

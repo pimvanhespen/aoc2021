@@ -10,7 +10,7 @@ import (
 type Octopuses [][]*Octopus
 
 type Octopus struct {
-	Value int
+	Value   int
 	Flashed bool
 }
 
@@ -27,7 +27,7 @@ func (o *Octopus) Start() {
 }
 
 func (o *Octopus) Inc() {
-	if ! o.Flashed {
+	if !o.Flashed {
 		o.Value++
 	}
 }
@@ -46,12 +46,12 @@ var (
 	whys = []int{-1, -1, -1, 0, 0, 1, 1, 1}
 )
 
-func (o Octopuses) FlashNeighbours(xIn,yIn int) int {
+func (o Octopuses) FlashNeighbours(xIn, yIn int) int {
 	flashes := 0
 	for i := 0; i < 8; i++ {
-		x, y := xIn + exes[i], yIn + whys[i]
+		x, y := xIn+exes[i], yIn+whys[i]
 
-		if x < 0 || y < 0 || y >= len(o) || x >= len(o[y]){
+		if x < 0 || y < 0 || y >= len(o) || x >= len(o[y]) {
 			continue
 		}
 
@@ -64,7 +64,7 @@ func (o Octopuses) FlashNeighbours(xIn,yIn int) int {
 	return flashes
 }
 
-func(o Octopuses) NextGen() int {
+func (o Octopuses) NextGen() int {
 	flashes := 0
 
 	for _, row := range o {
@@ -104,10 +104,18 @@ func (o Octopuses) Count() int {
 	return count
 }
 
-func main(){
+func main() {
 	if err := exec("input.txt"); err != nil {
 		panic(err)
 	}
+}
+
+func solve1(o Octopuses) int {
+	totalFlashes := 0
+	for i := 0; i < 100; i++ {
+		totalFlashes += o.NextGen()
+	}
+	return totalFlashes
 }
 
 func solve2(o Octopuses) int {
@@ -122,20 +130,14 @@ func solve2(o Octopuses) int {
 }
 
 func exec(path string) error {
-	octo, err := readInput(path)
+	octos, err := readInput(path)
 	if err != nil {
 		return err
 	}
+	octosCopy := octos.DeepCopy()
 
-	octo2 := octo.DeepCopy()
-
-	totalFlashes := 0
-	for i := 0; i < 100; i++ {
-		totalFlashes += octo.NextGen()
-	}
-	fmt.Println("Solve1: ", totalFlashes)
-
-	fmt.Println("Solve2: ", solve2(octo2))
+	fmt.Println("Solve1: ", solve1(octos))
+	fmt.Println("Solve2: ", solve2(octosCopy))
 
 	return nil
 }
@@ -150,7 +152,7 @@ func readInput(path string) (Octopuses, error) {
 	rows := make([][]*Octopus, 0)
 
 	scanner := bufio.NewScanner(f)
-	for scanner.Scan(){
+	for scanner.Scan() {
 		line := scanner.Text()
 		octos := make([]*Octopus, 0, len(line))
 		for _, r := range line {

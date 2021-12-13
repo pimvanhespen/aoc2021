@@ -1,4 +1,4 @@
-package fold
+package paper
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ type Fold struct {
 	Value        int
 }
 
-func FromText(text string) (Fold, error) {
+func FoldFromText(text string) (Fold, error) {
 	parts := strings.Split(text[11:], "=")
 	if len(parts) != 2 {
 		return Fold{}, errors.New("not enough parts in fold string")
@@ -22,7 +22,7 @@ func FromText(text string) (Fold, error) {
 
 	value, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return Fold{}, fmt.Errorf("FromText: %v", err)
+		return Fold{}, fmt.Errorf("FoldFromText: %v", err)
 	}
 
 	fold := Fold{

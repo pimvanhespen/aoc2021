@@ -1,7 +1,6 @@
-package coord
+package paper
 
 import (
-	"day13/internal/fold"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,7 +18,7 @@ func calFold(pos, fold int) int {
 	return fold - (pos - fold)
 }
 
-func (c Coord) Fold(f fold.Fold) Coord {
+func (c Coord) Fold(f Fold) Coord {
 	if f.IsHorizontal {
 		if c.Y < f.Value {
 			return c
@@ -45,11 +44,11 @@ func FromText(in string) (Coord, error) {
 	parts := strings.Split(in, ",")
 	x, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return Coord{}, fmt.Errorf("coord.FromText: %v", err)
+		return Coord{}, fmt.Errorf("paper.FoldFromText: %v", err)
 	}
 	y, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return Coord{}, fmt.Errorf("coord.FromText: %v", err)
+		return Coord{}, fmt.Errorf("paper.FoldFromText: %v", err)
 	}
 
 	return Coord{x, y}, nil

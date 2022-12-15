@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/fatih/color"
 	"math"
 	"os"
 	"path"
@@ -65,26 +64,6 @@ func (f Field) NeighboursOf(n *Node) []*Node {
 	return neighbours
 }
 
-func (f Field) Print(path []*Node) {
-	m := make(map[*Node]struct{})
-	for _, n := range path {
-		m[n] = struct{}{}
-	}
-
-	found := color.New(color.BgGreen, color.Bold)
-
-	for _, row := range f {
-		for _, n := range row {
-			if _, ok := m[n]; ok {
-				_, _ = found.Print(n.Cost)
-			} else {
-				fmt.Print(n.Cost)
-			}
-		}
-		fmt.Println()
-	}
-}
-
 func (f Field) AStar(start, goal *Node, h HeuristicFn) []*Node {
 	openSet := make(OpenSet)
 	openSet.Add(start)
@@ -99,6 +78,7 @@ func (f Field) AStar(start, goal *Node, h HeuristicFn) []*Node {
 			fScore[n] = math.MaxInt
 		}
 	}
+
 	gScore[start] = 0
 	fScore[start] = h(start)
 
@@ -110,8 +90,11 @@ func (f Field) AStar(start, goal *Node, h HeuristicFn) []*Node {
 		}
 
 		openSet.Del(current)
+
 		for _, neighbour := range f.NeighboursOf(current) {
+
 			tentativeGScore := gScore[current] + neighbour.Cost
+
 			if tentativeGScore < gScore[neighbour] {
 				cameFrom[neighbour] = current
 				gScore[neighbour] = tentativeGScore
@@ -199,8 +182,6 @@ func solve1(f Field) int {
 	end := f[eY][eX]
 
 	result := f.AStar(start, end, MhtnDist(eX, eY))
-
-	f.Print(result)
 
 	risk := -result[0].Cost
 	for _, n := range result {
